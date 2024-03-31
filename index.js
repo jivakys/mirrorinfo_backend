@@ -8,7 +8,7 @@ require("dotenv").config();y
 
 app.use(express.json());
 app.use(cors({
-  origin: 'https://mirrorinfoshopapp.vercel.app/'
+  origin: 'https://mirrorinfoshopapp.vercel.app'
 }));
 
 app.get("/", (req, res) => {

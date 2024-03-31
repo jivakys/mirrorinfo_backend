@@ -7,8 +7,7 @@ const authenticate = (req, res, next) => {
   if (token) {
     jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
       if (decoded) {
-        console.log("userid=", decoded.userID);
-        req.body.userID = decoded.userID;
+        req.body.userId = decoded.userID;
         next();
       } else {
         res.status(400).send("Please login first!");

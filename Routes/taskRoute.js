@@ -1,16 +1,16 @@
 const express = require("express");
 const taskRouter = express.Router();
-// const MongoClient = require("mongodb").MongoClient;
 const { authenticate } = require("../Middlewares/authenticate");
 const { TaskModel } = require("../Models/taskModel");
 
+
 taskRouter.get("/dashboard", authenticate, async (req, res) => {
   try {
-    const tasks = await TaskModel.find();
+    const tasks = await TaskModel.find({ userId: req.body.userId });
     res.send(tasks);
   } catch (err) {
     console.error("Error fetching tasks:", err);
-    res.status(500).send({ msg: "Error retrieving tasks from Mongodb" });
+    res.status(500).send({ msg: "Error retrieving tasks from MongoDB" });
   }
 });
 
@@ -19,13 +19,13 @@ taskRouter.post("/addTask", authenticate, async (req, res) => {
   try {
     if (!title) return res.status(400).send("Title is required");
     const task = new TaskModel({
-      title: title,
-      description: description,
+      title,
+      description,
       status: status || "pending",
+      userId: req.body.userId,
     });
-    // console.log("task=", task);
     await task.save();
-    res.send({ msg: "new task added", task });
+    res.send({ msg: "New task added", task });
   } catch (err) {
     console.log(err);
     res.status(500).send({ error: err.message });
@@ -36,8 +36,8 @@ taskRouter.put("/update/:id", authenticate, async (req, res) => {
   try {
     const payload = req.body;
     const taskID = req.params.id;
-    const newTask = await TaskModel.findByIdAndUpdate(
-      taskID,
+    const updatedTask = await TaskModel.findOneAndUpdate(
+      { _id: taskID, userId: req.body.userId },
       {
         title: payload.title,
         description: payload.description,
@@ -46,20 +46,20 @@ taskRouter.put("/update/:id", authenticate, async (req, res) => {
       },
       { new: true }
     );
-    if (!newTask) return res.status(404).send("task not found");
+    if (!updatedTask) return res.status(404).send("Task not found");
     res.send({ msg: `The task with id: ${taskID} has been updated` });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: err.message });
+    res.status(500).send({ error: error.message });
   }
 });
 
 taskRouter.delete("/delete/:id", authenticate, async (req, res) => {
   try {
     const taskID = req.params.id;
-    const task = await TaskModel.findByIdAndDelete({ _id: taskID });
-    if (!task) return res.status(404).send("task not found");
-    res.send({ msg: `Task with the ${taskID} has been deleted` });
+    const deletedTask = await TaskModel.findOneAndDelete({ _id: taskID, userId: req.body.userId });
+    if (!deletedTask) return res.status(404).send("Task not found");
+    res.send({ msg: `Task with id ${taskID} has been deleted` });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }

@@ -4,10 +4,12 @@ const { userRouter } = require("./Routes/userRoute");
 const { taskRouter } = require("./Routes/taskRoute");
 const cors = require("cors");
 const app = express();
-require("dotenv").config();
+require("dotenv").config();y
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'https://mirrorinfoshopapp.vercel.app'
+}));
 
 app.get("/", (req, res) => {
   try {
